@@ -5,6 +5,7 @@
 #include <stdlib.h>
 #include <time.h>
 #include <string.h>
+
 // clientData structure definition
 struct clientData
 {
@@ -27,6 +28,7 @@ void updateRecord(FILE *fPtr);
 void newRecord(FILE *fPtr);
 void deleteRecord(FILE *fPtr);
 void viewRecord(FILE *fPtr);
+void listAccounts(FILE *fPtr);
 
 int main(){
     FILE *cfPtr;         // credit.dat file pointer
@@ -48,28 +50,26 @@ int main(){
        
     } // end if
 
-    // enable user to specify action
-    choice = enterChoice();
-    while (choice != 6){
+   // Change the loop condition from 6 to 7
+    while (choice != 7){
         switch (choice){
         case 1:// create record
-            newRecord(cfPtr);
-            break;
+            newRecord(cfPtr); break;
         case 2:// update record
-            updateRecord(cfPtr);
-            break;
+            updateRecord(cfPtr); break;
         case 3:// create text file from record file
-            textFile(cfPtr);
-            break;
+            textFile(cfPtr); break;
         case 4:// delete existing record
-            deleteRecord(cfPtr);
-            break;
+            deleteRecord(cfPtr); break;
         case 5:// view record
-            viewRecord(cfPtr);
-            break;
+            viewRecord(cfPtr); break;
+            
+        // ---> ADD THIS NEW CASE <---
+        case 6:// list all accounts
+            listAccounts(cfPtr); break;
+            
         default:// display if user does not select valid choice
-            puts("Incorrect choice");
-            break;
+            puts("Incorrect choice"); break;
         } // end switch
         choice = enterChoice(); // ask again
     }     // end while
@@ -87,7 +87,8 @@ int enterChoice(void){
     printf("3 - Store a text file\n");
     printf("4 - Delete an existing account\n");
     printf("5 - View an account details\n");
-    printf("6 - End program\n");
+    printf("6 - List all accounts\n"); 
+    printf("7 - End program\n"); 
     printf("%s", "Enter your choice: ");
     scanf("%d", &menuChoice);
     return menuChoice;
@@ -298,7 +299,38 @@ void viewRecord(FILE *fPtr){
             printf("Last Updated : %s\n", client.lastAccessed);
         }
         printf("*********************************\n");
-    } // end else
-    
+    } 
 }
+void listAccounts(FILE *fPtr) {
+    struct clientData client = {0, "", "", "", 0.0, "", "", 0, 0};
+    int count = 0;
+
+    printf("\n%-6s %-10s %-15s %-12s %-12s\n", "Acct", "Status", "Last Name", "First Name", "Balance");
+    printf("-----------------------------------------------------------\n");
+
+    rewind(fPtr); // start reading from the beginning of the file
+
+    while (fread(&client, sizeof(struct clientData), 1, fPtr) == 1) {
+        // Only print slots that have been created (acctNum != 0)
+        if (client.acctNum != 0) {
+            char status[10];
+            if (client.isActive == 1) {
+                strcpy(status, "Active");
+            } else {
+                strcpy(status, "Inactive");
+            }
+            
+            printf("%-6d %-10s %-15s %-12s %-12.2f\n", 
+                   client.acctNum, status, client.lastName, client.firstName, client.balance);
+            count++;
+        }
+    }
+
+    if (count == 0) {
+        printf("No accounts found in the database.\n");
+    }
+    printf("-----------------------------------------------------------\n");
+}
+// end else 
+// list all accounts in the console
 // end function enterChoice
